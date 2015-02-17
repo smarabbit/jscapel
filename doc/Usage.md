@@ -28,7 +28,7 @@ make
 	The source code is located at /artifact/browserstub/dll
 
 
-3. load the DECAF plugin browserstub to get the JavaScript trace and binary trace.
+3.load the DECAF plugin browserstub to get the JavaScript trace and binary trace.
 
   * compile the decaf plugin
  ```
