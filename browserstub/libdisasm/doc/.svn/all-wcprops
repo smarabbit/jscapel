@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/main/!svn/ver/6763/DECAF/plugins/browserstub/libdisasm/doc
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/main/!svn/ver/6763/DECAF/plugins/browserstub/libdisasm/doc/Makefile
+END
+Makefile.in
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/main/!svn/ver/6762/DECAF/plugins/browserstub/libdisasm/doc/Makefile.in
+END
+libdisasm.txt
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/main/!svn/ver/6762/DECAF/plugins/browserstub/libdisasm/doc/libdisasm.txt
+END
+Makefile.am
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/main/!svn/ver/6762/DECAF/plugins/browserstub/libdisasm/doc/Makefile.am
+END

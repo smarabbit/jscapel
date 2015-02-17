@@ -1,0 +1,864 @@
+/*
+Copyright (C) <2012> <Syracuse System Security (Sycure) Lab>
+This is a plugin of DECAF. You can redistribute and modify it
+under the terms of BSD license but it is made available
+WITHOUT ANY WARRANTY. See the top-level COPYING file for more details.
+
+For more information about DECAF and other softwares, see our
+web site at:
+http://sycurelab.ecs.syr.edu/
+
+If you have any questions about DECAF,please post it on
+http://code.google.com/p/decaf-platform/
+*/
+/**
+ * @author Aravind Prakash, Xunchao Hu
+ * @date Jan 24 2013
+ */
+
+#include <stdio.h>
+#include <inttypes.h>
+#include <sys/time.h>
+#include <libdis.h>
+#include <glib.h>
+
+#include "DECAF_types.h"
+#include "DECAF_main.h"
+#include "DECAF_callback.h"
+#include "DECAF_callback_common.h"
+#include "shared/vmi_c_wrapper.h"
+#include "vmi_callback.h"
+#include "utils/Output.h"
+#include "cfi.h"
+#include "browserstub.h"
+//basic stub for plugins
+static plugin_interface_t my_interface;
+
+static DECAF_Handle processbegin_handle = DECAF_NULL_HANDLE;
+static DECAF_Handle removeproc_handle = DECAF_NULL_HANDLE;
+static DECAF_Handle callff_handle = DECAF_NULL_HANDLE;
+static DECAF_Handle call_handle = DECAF_NULL_HANDLE;
+static DECAF_Handle ret_handle = DECAF_NULL_HANDLE;
+static DECAF_Handle load_module_handle = DECAF_NULL_HANDLE;
+
+//static CPUState *cur_env;
+static uint32_t Netbeandll_base;
+static uint32_t Netbeandll_size;
+static uint32_t Netbeandll_upbound;
+static uint32_t stubdll_base;
+static uint32_t stubdll_size;
+static uint32_t stubdll_upbound;
+static uint32_t jscriptdll_base;
+static uint32_t jscriptdll_size;
+static uint32_t jscriptdll_upbound;
+
+static uint32_t PRINT_CONTROL = 0;
+extern gva_t *WL_Extract (char *filename, unsigned int *total_entries, gva_t *base);
+
+/*
+ * shadow_stack supports 512 elements.
+ */
+uint32_t shadow_stack[MAX_THREADS][STACK_SIZE];
+int stack_top[MAX_THREADS] = {0};
+
+uint32_t current_stack_index; //Index of the last seen thread stack.
+uint32_t curr_esp_page; //Last seen esp page.
+uint32_t total_threads; //Total threads in the system.
+
+unsigned int proc_module_count = 0;
+gva_t mod_layout[MAX_MODULES * 2] = {0};
+GHashTable *mod_hashtable;
+
+/* Mapping to map the (threadid|fiberid) to stack_index. */
+struct Tid_Fid key_stack_mapping[MAX_THREADS];
+
+/* Path to the guest file system on the host */
+char C_DRIVE[256] = "";
+unsigned int initialized = 0; //1 = exe, 2 = ntdll.dll, 4 = kernel32.dll
+
+void do_set_print_stack(Monitor *mon, const QDict *qdict)
+{
+	if(PRINT_CONTROL == 0)
+	{
+		PRINT_CONTROL =1;
+		DECAF_printf("Printing out stack activities \n");
+	}
+	else
+	{
+		PRINT_CONTROL = 0;
+		DECAF_printf("Disable printing out stack activities \n");
+	}
+}
+
+void do_set_guest_dir(Monitor *mon, const QDict *qdict)
+{
+	if ((qdict != NULL) && (qdict_haskey(qdict, "guest_dir"))) {
+	    strncpy(C_DRIVE, qdict_get_str(qdict, "guest_dir"), 256);
+	}
+	else {
+		DECAF_printf("Unable to set C_DRIVE :(\n");
+	}
+}
+
+
+
+inline char * strlwr(char * str)
+{
+	
+	char* orig = str;
+// process the string
+	int i = 0;
+for ( ; *str != '\0'; str++ )
+{
+*str = tolower(*str);
+
+}
+return orig;
+
+}
+
+
+
+void convert_to_host_filename(char *fullname, char *host_name)
+{
+	
+
+	fullname = strlwr(fullname);
+//fullname already in lower case
+
+	strcpy(host_name, C_DRIVE);
+
+	char *pch ;
+	pch = strstr(fullname, "systemroot");
+	if(pch != NULL)
+	{
+		fullname += 11;
+		strcat(host_name,"windows/");
+	}
+	pch = strstr(fullname,"\\device\\harddiskvolume1\\");
+
+	if(pch != NULL)
+	{
+		fullname += 23;
+
+	}
+//	DECAF_printf("fullname %s \n host_name %s", fullname, host_name);
+	
+	
+	//	strcat(host_name, (char *)(&fullname[2])); //accommodate for "c:"
+
+	strcat(host_name, (char *) fullname);
+	
+
+    int x=0;
+    while (host_name[x]!=0) {
+		if (((int)host_name[x])==92) {
+			host_name[x]='/';
+		}
+		x++;
+    }
+
+}
+
+/* Level of redirection in case we want to do some work later on. */
+gva_t *enum_exp_table_reloc_table_to_wl (char *filename, unsigned int *total_entries, gva_t *base)
+{
+	gva_t *ret = WL_Extract(filename, total_entries, base);
+	return ret;
+}
+
+
+/* This is a slow version of getting the index corresponding to a key. 
+Another approach would be to maintain a map! */
+//static inline uint32_t get_stack_index_from_key(uint64_t key)
+uint32_t get_stack_index_from_key(struct Tid_Fid key)
+{
+	int i = 0;
+	for(i = 0; i < total_threads; i++) {
+		if(key_stack_mapping[i].fiberId == key.fiberId &&
+				key_stack_mapping[i].tid == key.tid)
+			return i;
+	}
+	assert(total_threads < MAX_THREADS);
+	if(key.tid == 0 | key.fiberId ==0)
+	{
+
+	}
+//	DECAF_printf("New thread: TID:FID::%d:%d. Stack Index %d\n", key.tid, key.fiberId,total_threads);
+	key_stack_mapping[total_threads].fiberId = key.fiberId;
+	key_stack_mapping[total_threads].tid = key.tid;
+	total_threads++;
+	return total_threads-1;
+}
+	
+/* This function is used to retrieve the tid of the currently executing thread from the guest. 
+FS base in the use mode points to the Thread Information Block (TIB) of the currently executing thread.
+*/
+uint32_t get_tid_from_guest(CPUState *env)
+{
+	uint32_t fs_base = 0, tid = 0;
+	fs_base = env->segs[R_FS].base;
+	DECAF_read_mem(env, fs_base+0x24, 4, &tid);
+	return tid;
+}
+
+
+/* Similar to get_tid_from_guest(). */
+uint32_t get_fiber_id_from_guest(CPUState *env)
+{
+	uint32_t fs_base = 0, fiber_id = 0;
+	fs_base = env->segs[R_FS].base;
+	DECAF_read_mem(env, fs_base+0x10, 4, &fiber_id);
+	return fiber_id;
+}
+
+/* To obtain the index corresponding to the appropriate stack of interest */
+uint32_t get_current_stack_index(CPUState *env)
+{
+
+	uint32_t tid = 0, fiber_id = 0;
+	struct Tid_Fid key;
+
+	tid = get_tid_from_guest(env);
+	fiber_id = get_fiber_id_from_guest(env);
+	key.tid = tid;
+	key.fiberId = fiber_id;
+	current_stack_index = get_stack_index_from_key(key);
+	return current_stack_index;
+}
+
+int get_insn_size(CPUState *env, target_ulong addr)
+{
+	int size = 0;
+	unsigned char buf[MAX_INSN_SIZE] = {0};
+	DECAF_read_mem(env, addr, MAX_INSN_SIZE, buf);
+	x86_insn_t insn;
+	size = x86_disasm(buf, MAX_INSN_SIZE, 0, 0, &insn);
+	x86_oplist_free(&insn);
+	return size;
+}
+
+
+/* Save the return address of the call instruction to the shadow stack. */
+void push_ret_addr_on_stack(DECAF_Callback_Params *param)
+{
+	int size = get_insn_size(param->op.env, param->op.eip);
+
+	if(size <= 0)
+	  return;
+
+	current_stack_index = get_current_stack_index(param->op.env);
+	shadow_stack[current_stack_index][stack_top[current_stack_index]] = param->op.eip + size;
+	stack_top[current_stack_index]++;
+
+	if(PRINT_CONTROL == 1)
+		DECAF_printf("Pushing 0x%08x to the stack. Stack %d Stack index = %d\n", param->op.eip+size,current_stack_index ,stack_top[current_stack_index] - 1);
+}
+// -1 : should ingore this read/write operation
+//1 : keep record of this read/write operation
+int get_cur_call_stack(uint32_t ret[3])
+{
+	
+
+	int index ;
+	current_stack_index = get_current_stack_index(cpu_single_env);
+
+	int isJScriptOnStack = -1;
+	for (index = stack_top[current_stack_index]-1; index >=0 ; index --)
+	{
+		if(shadow_stack[current_stack_index][index] >= Netbeandll_base 
+			& shadow_stack[current_stack_index][index] <=Netbeandll_upbound )
+		{
+			//DECAF_printf("ingore ..NetBeansExtension \n");
+			return -1;
+		}
+
+		if(shadow_stack[current_stack_index][index] >= stubdll_base 
+			& shadow_stack[current_stack_index][index] <=stubdll_upbound )
+		{
+			//DECAF_printf("ingore ..NetBeansExtension \n");
+			return -1;
+		}
+
+	//	if(shadow_stack[current_stack_index][index] >= jscriptdll_base 
+	///		& shadow_stack[current_stack_index][index] <= jscriptdll_upbound )
+	//	{
+			//DECAF_printf("ingore ..NetBeansExtension \n");
+	//		isJScriptOnStack = 1;
+	//	}
+	}
+
+	//if(isJScriptOnStack == -1)
+	//	return -1;
+
+//	DECAF_printf("0x%08x \n",cpu_single_env->regs[R_ESP]);
+
+	ret[0] = cpu_single_env->eip;
+//	ret[1] = shadow_stack[current_stack_index][stack_top[current_stack_index]-1] ; //stack top
+//	ret[2] = shadow_stack[current_stack_index][stack_top[current_stack_index]-2] ; //stack top -1
+
+	ret[1] = cpu_single_env->regs[R_ESP];
+	ret[2] = 0;
+	return 1;
+
+
+
+}
+unsigned int match_count = 0; //bookkeeping
+
+int binsearch_mr (target_ulong *A, target_ulong value, int max_elements)
+{
+	int low = 0;
+	int mid = 0;
+	int high = max_elements - 1;
+	while (low <= high) {
+		mid = (low + high)/2;
+		if(A[mid] > value)
+			high = mid - 1;
+		else if(A[mid] < value)
+			low = mid + 1;
+		else
+			return mid;
+	}
+	return -(low);
+}
+
+/* Lookup module that address belongs to */
+struct bin_file *lookup_module(gva_t addr)
+{
+	int index = 0;
+	index = binsearch_mr(mod_layout, addr, proc_module_count);
+	struct bin_file *file = NULL;
+
+	if(index == 0 || index == -1 * (proc_module_count)) {
+		goto done;
+	} else {
+		index = (index > 0)? index : -(index);
+		if(!(index & 0x1))
+			goto done;
+
+		file = g_hash_table_lookup(mod_hashtable, (gconstpointer)(mod_layout[index - 1]));
+	}
+
+done:
+	return file;
+}
+
+int is_in_whitelist(DECAF_Callback_Params * param)
+{
+	gva_t addr = param->op.next_eip;
+	struct bin_file *mod = lookup_module(addr);
+	if(mod == NULL) {
+		//DECAF_printf("module missed CurrentEIP 0x%08x Frome 0x%08x to 0x%08x Op.env 0x%08x \n",param->op.env->eip, param->op.eip, param->op.next_eip, (gva_t)(param->op.env));
+		goto missed;
+		//return -1;
+	}
+	gva_t offset = addr - mod->image_base;
+	if(g_hash_table_lookup(mod->whitelist, (gconstpointer) offset)) {
+		return 1;
+	}
+
+
+
+missed:
+	return 0;
+}
+
+void call_target_handler(DECAF_Callback_Params *param)
+{
+
+	if(param->op.env->cr[3] != targetcr3)
+		return;
+
+	/* We are only interested in user space */
+	if(param->op.eip > 0x80000000)
+		return;
+
+	if(param->op.next_eip > 0x80000000)
+		return;
+
+	/* FIXME: Hack. This shouldn't need to happen. A likely bug in decaf opcode callbacks. */
+	if(param->op.next_eip == (gva_t)(param->op.env))
+		return;
+
+
+	push_ret_addr_on_stack(param);
+}
+
+unsigned int wl_match_count = 0; //bookkeeping
+
+/*
+ * Handler for indirect call/jmp instructions
+ */
+void callff_target_handler(DECAF_Callback_Params *param)
+{
+	if(param->op.env->cr[3] != targetcr3)
+		return;
+
+	if(param->op.eip > 0x80000000)
+		return;
+
+	if(param->op.next_eip > 0x80000000)
+		return;
+
+
+	if(param->op.next_eip == (gva_t)(param->op.env))
+		return;
+
+
+
+
+	unsigned char insn_buf[2];
+	int b, i;
+	gva_t topval = 0;
+	unsigned int top = 0;
+	DECAF_read_mem(param->op.env, param->op.eip, 2, insn_buf);
+	b = (insn_buf[1]>>3) & 7;
+
+	//is_in_whitelist(param);
+	//Check in whitelist
+	//#if 0
+
+	if(is_in_whitelist(param) == 0) {
+		if(initialized == (0x04 | 0x02 | 0x01)) {
+				/*
+				 * Some flows use indirect jmp to return. Eg: kernel32.dll::switchToFiber()
+				 */
+			if(b == 4 || b == 5) { //indirect jmp instruction
+				  current_stack_index = get_current_stack_index(param->op.env);
+				  if(param->op.next_eip == shadow_stack[current_stack_index][stack_top[current_stack_index]-1]) {
+					  shadow_stack[current_stack_index][stack_top[current_stack_index]-1] = 0;
+					  stack_top[current_stack_index]--;
+					  match_count ++;
+					 // DECAF_printf("indirect jmp match %d\n",match_count);
+				  } else {
+				  	
+					  top = stack_top[current_stack_index];
+
+					  for(i = top - 1; i >= 0; i--) {
+						  topval = shadow_stack[current_stack_index][i];
+						  shadow_stack[current_stack_index][i] = 0;
+						  stack_top[current_stack_index] --;
+						  if(param->op.next_eip == topval) {
+							  break;
+						  }
+					  }
+
+
+					  if(i < 0) {
+
+					  		time_t rawtime;
+	 						time(&rawtime);
+	 						DECAF_printf("current time %s", ctime(&rawtime));
+
+						  	DECAF_printf("ATTACK... Not in whitelist! EIP: 0x%08x (Indirect Jump), Next EIP: 0x%08x\n", param->op.eip, param->op.next_eip);
+							DECAF_stop_vm();
+							memory_save("./virtualmemory.bin",0x00000000,0x80000000,param->op.env);
+							register_bb_recorder();
+					  }
+					  
+				  }
+				//  DECAF_printf("Indrect JUMP INSN EIP: 0x%08x (Indirect Call), Next EIP: 0x%08x\n", param->op.eip, param->op.next_eip);
+
+			} else if(b == 2 || b == 3){ // for call instruction
+
+
+				DECAF_printf("ATTACK... Not in whitelist! EIP: 0x%08x (Indirect Call), Next EIP: 0x%08x\n", param->op.eip, param->op.next_eip);
+				DECAF_stop_vm();
+				memory_save("./virtualmemory.bin",0x00000000,0x80000000,param->op.env);
+				register_bb_recorder();
+			}
+		}
+	} else {
+		wl_match_count ++;
+	//	DECAF_printf("wl hit %d \n", wl_match_count);
+	}
+	//#endif 
+
+	/* If call insn, push ret addr to shadow stack */
+	if(b==2 || b==3) {
+		push_ret_addr_on_stack(param);
+	}
+}
+
+void ret_target_handler(DECAF_Callback_Params *param)
+{
+	if(param->op.env->cr[3] != targetcr3)
+			return;
+
+	if(param->op.eip > 0x80000000)
+			return;
+
+	if(param->op.next_eip > 0x80000000)
+			return;
+
+
+	if(param->op.next_eip == (gva_t)(param->op.env))
+		return;
+
+	
+
+
+	   uint32_t ret_addr = param->op.next_eip;
+
+	   int i = 0;
+	   gva_t topval = 0;
+	   unsigned int rew_count = 0, top = 0;
+	  current_stack_index = get_current_stack_index(param->op.env);
+
+	  //A thread got converted to a fiber. Verify and exclude
+	  //During call, the ret addr went into one stack, but the thread was split into a fiber so during return,
+	  //the context was different.
+	  
+	  if(stack_top[current_stack_index] == 0) {
+		  for(i = 0; i < total_threads; i++) {
+			  if(shadow_stack[i][stack_top[i] - 1] == ret_addr) {
+				  shadow_stack[i][stack_top[i] - 1] = 0;
+				  stack_top[i] --;
+				  match_count ++;
+				  return;
+			  }
+		  }
+	  }
+	
+	  if(PRINT_CONTROL == 1)
+	  DECAF_printf("Curr stack = %d, Stack top has: 0x%08x at stack_index = %d. Returning to 0x%08x\n", current_stack_index,
+	   shadow_stack[current_stack_index][stack_top[current_stack_index]-1], stack_top[current_stack_index] - 1, param->op.next_eip);
+	  if(ret_addr == shadow_stack[current_stack_index][stack_top[current_stack_index]-1]) {
+		  shadow_stack[current_stack_index][stack_top[current_stack_index]-1] = 0;
+		  stack_top[current_stack_index]--;
+		  match_count ++;
+	  } else {
+	  		if(PRINT_CONTROL == 1)
+	  		DECAF_printf("Ret addr 0x%08x != stack top 0x%08x. Popping..", ret_addr, shadow_stack[current_stack_index][stack_top[current_stack_index]-1]);
+		  rew_count = 0;
+		  top = stack_top[current_stack_index];
+
+		  int popped = 0;
+		  for(i = top - 1; i >= 0; i--) {
+		  		popped ++;
+			  topval = shadow_stack[current_stack_index][i];
+			  shadow_stack[current_stack_index][i] = 0;
+			  stack_top[current_stack_index] --;
+			  if(ret_addr == topval) {
+				  break;
+			  }
+		  }
+		  //DECAF_printf("%d elements popped\n", popped);
+
+		  if(i < 0) {
+			    DECAF_printf("ATTACK!!! Returning from 0x%08x to 0x%08x. Stack index = %d\n", param->op.eip, param->op.next_eip, current_stack_index);
+			 //   DECAF_stop_vm();
+		  }
+	  }
+}
+
+/*
+ * Adds a particular module to a process.
+ */
+int add_proc_module(gva_t addr, gva_t size)
+{
+	int index;
+
+	index = binsearch_mr(mod_layout, addr, proc_module_count);
+
+	if(index > 0 || ((-index) & 0x1) == 1)
+		return -1;
+
+	if(proc_module_count > (2 * MAX_MODULES) - 2)
+		return -1;
+
+	index = -(index);
+
+	memmove(&(mod_layout[index+2]), &(mod_layout[index]), (proc_module_count - index) * sizeof(gva_t));
+	mod_layout[index] = addr;
+	mod_layout[index+1] = addr + size;
+	proc_module_count += 2;
+
+	return 0;
+}
+
+void load_module_cb(VMI_Callback_Params* params)
+{
+	int i = 0;
+
+	if(params->lm.cr3 != targetcr3)
+		return;
+	if(params->lm.base > 0x80000000)
+		return;
+	struct bin_file *file = (struct bin_file *) malloc (sizeof(struct bin_file));
+
+	if(file == NULL || proc_module_count == MAX_MODULES * 2) {
+		DECAF_printf("Max modules reached or mem allocation failed :(\n");
+		DECAF_stop_vm();
+		return;
+	}
+
+	//set netbeansdll base and size
+	if ( strcmp(params->lm.name, "NetBeansExtension.dll") == 0)
+	{
+		Netbeandll_base = params->lm.base;
+		Netbeandll_size = params->lm.size;
+		Netbeandll_upbound = Netbeandll_base + Netbeandll_size;
+		DECAF_printf("set NetBeansExtension base and size 0x%08x 0x%08x  \n", Netbeandll_base, Netbeandll_size);
+	}
+	if ( strcmp(params->lm.name, "stub.dll") == 0)
+	{
+		stubdll_base = params->lm.base;
+		stubdll_size = params->lm.size;
+		stubdll_upbound = stubdll_base + stubdll_size;
+		DECAF_printf("set stub.dll base and size 0x%08x 0x%08x  \n", stubdll_base, stubdll_size);
+	}
+	if( strcmp(params->lm.name, "jscript.dll") == 0)
+	{
+		jscriptdll_base = params->lm.base;
+		jscriptdll_size = params->lm.size;
+		jscriptdll_upbound = jscriptdll_base + jscriptdll_size;
+	}
+	
+
+	file->image_base = params->lm.base;
+	strcpy(file->name, params->lm.full_name);
+
+
+	file->whitelist = g_hash_table_new(0, 0);
+
+	char host_name[512] = {0};
+	convert_to_host_filename(params->lm.full_name, host_name);
+	unsigned int total_entries = 0;
+	gva_t desired_base = 0;
+	//DECAF_printf("HOST name %s\n",host_name);
+	//DECAF_printf("oname %s\n", params->lm.full_name);
+
+	if (strcmp(params->lm.name, "OWC10.DLL") ==0)
+	{
+		strcpy(host_name, "/media/1t1/hu/exploit/image/cfi/ie6owc/program files/common files/microsoft shared/web components/10/owc10.dll");
+	}
+
+	gva_t *entries = enum_exp_table_reloc_table_to_wl (host_name, &total_entries, &desired_base);
+
+	add_proc_module(params->lm.base, params->lm.size);
+
+	g_hash_table_insert(mod_hashtable, (gpointer)(file->image_base), (gpointer)(file));
+
+	if(entries != NULL) {
+		for(i = 0; i < total_entries; i++) {
+			g_hash_table_insert(file->whitelist, (gpointer) (entries[i] - desired_base), (gpointer)(1));
+		}
+
+	//	DECAF_printf("Module loaded: Base: 0x%08x, Size: %d, Full path: %s. %d entries loaded to whitelist.\n",
+	//			params->lm.base, params->lm.size, params->lm.full_name, total_entries);
+	}
+
+	/* We postpone analysis until kernel32.dll, ntdll.dll and exe code are loaded.
+	 * Such a postponement is reasonable since these dlls are preloaded.
+	 */
+	if(initialized != 0x7) {
+		if(strcmp(params->lm.name, "ntdll.dll") == 0) {
+			initialized |= 0x2;
+		} else if(strcmp(params->lm.name, "kernel32.dll") == 0) {
+			initialized |= 0x4;
+		} else if(strcmp(&(params->lm.name[strlen(params->lm.name)-3]), "exe") == 0) {
+			initialized |= 0x1;
+		} else if(strcmp(&(params->lm.name[strlen(params->lm.name)-3]), "EXE") == 0){
+			initialized |= 0x1;
+		}
+		if(initialized == 0x7) {
+			DECAF_printf("******INITIALIZATION COMPLETE*******\n");
+		}
+	}
+}
+
+OpcodeRangeCallbackConditions cond = DECAF_USER_TO_USER_ONLY;
+ void cfi_start_monitoring()
+{
+  call_handle = DECAF_registerOpcodeRangeCallbacks (
+			call_target_handler,
+			&cond,
+			0xe8,
+			0xe8);
+
+  callff_handle = DECAF_registerOpcodeRangeCallbacks (
+			callff_target_handler,
+			&cond,
+			0xff,
+			0xff);
+
+  ret_handle = DECAF_registerOpcodeRangeCallbacks (
+			ret_target_handler,
+			&cond,
+			0xc2,
+			0xc3);
+
+  load_module_handle = VMI_register_callback(VMI_LOADMODULE_CB, load_module_cb, NULL);
+  mod_hashtable = g_hash_table_new(0,0);
+  proc_module_count = 0;
+
+  x86_init(opt_none, NULL, NULL);
+}
+
+
+ void cfi_stop_monitoring()
+{
+/*
+ * Unregister the BLOCK_END callback and reset the monitored proc details.
+ */
+  //DECAF_unregisterOptimizedBlockEndCallback(blockend_handle);
+
+  targetname[0] = '\0';
+  targetcr3 = 0;
+  targetpid = (uint32_t)(-1);
+
+
+  if(call_handle != DECAF_NULL_HANDLE) {
+	  DECAF_unregisterOpcodeRangeCallbacks(call_handle);
+  }
+
+  if(callff_handle != DECAF_NULL_HANDLE) {
+	  DECAF_unregisterOpcodeRangeCallbacks(callff_handle);
+  }
+
+  if(ret_handle != DECAF_NULL_HANDLE) {
+	  DECAF_unregisterOpcodeRangeCallbacks(ret_handle);
+  }
+
+  if(load_module_handle != DECAF_NULL_HANDLE) {
+	  VMI_unregister_callback(VMI_LOADMODULE_CB, load_module_handle);
+  }
+  call_handle = callff_handle = ret_handle = load_module_handle = DECAF_NULL_HANDLE;
+
+  x86_cleanup();
+}
+
+
+
+/*
+ * This callback is invoked when a new process starts in the guest OS.
+ */
+ #if 0
+static void my_loadmainmodule_callback(VMI_Callback_Params* params)
+{
+  DECAF_printf("Process (%s) with pid = %d and cr3 = %u is created.\n", 
+	params->cp.name, params->cp.pid, params->cp.cr3);
+
+  /*
+   * If the new process is the process you want to monitor, start monitoring.
+   */
+  if (strcasecmp(targetname, params->cp.name) == 0) {
+    DECAF_printf("The specified program is found!\n");
+    targetpid = params->cp.pid;
+    targetcr3 = params->cp.cr3;
+
+    cfi_start_monitoring();
+  }
+}
+#endif
+
+/*
+ * This callback is invoked when a process exits in the guest OS.
+ */
+#if 0
+static void my_removeproc_callback(VMI_Callback_Params* params)
+{
+  /*
+   * If a process is being monitored and it exits, stop monitoring.
+   */
+  if (targetpid == params->rp.pid) {
+    DECAF_printf("Monitored process (%s) has exited!\n", targetname);
+    stop_monitoring();
+  }	
+}
+#endif 
+
+
+/*
+ * Handler to implement the command monitor_proc. (check plugin_cmds.h)
+ */
+
+void do_monitor_proc(Monitor* mon, const QDict* qdict)
+{
+	/*
+	 * Copy the name of the process to be monitored to targetname.
+	 */
+
+  if ((qdict != NULL) && (qdict_haskey(qdict, "procname"))) {
+    strncpy(targetname, qdict_get_str(qdict, "procname"), 512);
+  }
+  targetname[511] = '\0';
+  targetcr3 = 0;
+  targetpid = (uint32_t)(-1);
+ 
+}
+#if 0
+static int my_init(void)
+{
+  //Indicate to DECAF where you want to send the output to. NULL means send it to default_mon (usually the console).
+  DECAF_output_init(NULL);
+  DECAF_printf("Hello World\n");
+
+  //register for process create and process remove events
+  //processbegin_handle = VMI_register_callback(VMI_CREATEPROC_CB, &my_loadmainmodule_callback, NULL);
+  //removeproc_handle = VMI_register_callback(VMI_REMOVEPROC_CB, &my_removeproc_callback, NULL);
+
+  if ((processbegin_handle == DECAF_NULL_HANDLE) || (removeproc_handle == DECAF_NULL_HANDLE))
+  {
+    DECAF_printf("Could not register for the create or remove proc events\n");
+  }
+
+  //Reset the details of the monitored process.
+  targetname[0] = '\0';
+  targetcr3 = 0;
+  targetpid = (uint32_t)(-1);
+
+  return (0);
+}
+#endif
+/*
+ * This function is invoked when the plugin is unloaded.
+ */
+static void my_cleanup(void)
+{
+  DECAF_printf("Bye world\n");
+
+//  stop_monitoring();
+
+  /*
+   * Unregister for the process start and exit callbacks.
+   */
+  if (processbegin_handle != DECAF_NULL_HANDLE) {
+    VMI_unregister_callback(VMI_CREATEPROC_CB, processbegin_handle);
+    processbegin_handle = DECAF_NULL_HANDLE;
+  }
+
+  if (removeproc_handle != DECAF_NULL_HANDLE) {
+    VMI_unregister_callback(VMI_REMOVEPROC_CB, removeproc_handle);
+    removeproc_handle = DECAF_NULL_HANDLE;
+  }
+}
+
+
+/*
+ * Commands supported by the plugin. Included in plugin_cmds.h
+ */
+
+ /*
+static mon_cmd_t my_term_cmds[] = {
+  #include "plugin_cmds.h"
+  {NULL, NULL, },
+};
+
+/*
+ * This function registers the plugin_interface with DECAF.
+ * The interface is used to register custom commands, let DECAF know which cleanup function to call upon plugin unload, etc,.
+ */
+ /*
+plugin_interface_t* init_plugin(void)
+{
+  my_interface.mon_cmds = my_term_cmds;
+  my_interface.plugin_cleanup = &my_cleanup;
+  
+  my_init();
+  return (&my_interface);
+}
+
+*/

@@ -1,0 +1,161 @@
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/main/!svn/ver/6459/DECAF/plugins/browserstub/extension/ie
+END
+stdafx.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/main/!svn/ver/5092/DECAF/plugins/browserstub/extension/ie/stdafx.cpp
+END
+README.txt
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/main/!svn/ver/5092/DECAF/plugins/browserstub/extension/ie/README.txt
+END
+NetBeansExtension.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/main/!svn/ver/5092/DECAF/plugins/browserstub/extension/ie/NetBeansExtension.cpp
+END
+resource.h
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/main/!svn/ver/5092/DECAF/plugins/browserstub/extension/ie/resource.h
+END
+NetBeansBHO.h
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/main/!svn/ver/5284/DECAF/plugins/browserstub/extension/ie/NetBeansBHO.h
+END
+Breakpoint.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/main/!svn/ver/5092/DECAF/plugins/browserstub/extension/ie/Breakpoint.cpp
+END
+stdafx.h
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/main/!svn/ver/5092/DECAF/plugins/browserstub/extension/ie/stdafx.h
+END
+Utils.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/main/!svn/ver/5092/DECAF/plugins/browserstub/extension/ie/Utils.cpp
+END
+NetBeansBHO.rgs
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/main/!svn/ver/5092/DECAF/plugins/browserstub/extension/ie/NetBeansBHO.rgs
+END
+Breakpoint.h
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/main/!svn/ver/5092/DECAF/plugins/browserstub/extension/ie/Breakpoint.h
+END
+dlldata.c
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/main/!svn/ver/5092/DECAF/plugins/browserstub/extension/ie/dlldata.c
+END
+Utils.h
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/main/!svn/ver/5092/DECAF/plugins/browserstub/extension/ie/Utils.h
+END
+NetBeansExtension.rgs
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/main/!svn/ver/5092/DECAF/plugins/browserstub/extension/ie/NetBeansExtension.rgs
+END
+NetBeansExtension.vcxproj
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/main/!svn/ver/5222/DECAF/plugins/browserstub/extension/ie/NetBeansExtension.vcxproj
+END
+NetBeansExtension.sln
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/main/!svn/ver/5092/DECAF/plugins/browserstub/extension/ie/NetBeansExtension.sln
+END
+UpgradeLog.XML
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/main/!svn/ver/5092/DECAF/plugins/browserstub/extension/ie/UpgradeLog.XML
+END
+NetBeansExtension.def
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/main/!svn/ver/5092/DECAF/plugins/browserstub/extension/ie/NetBeansExtension.def
+END
+ScriptDebugger.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/main/!svn/ver/6459/DECAF/plugins/browserstub/extension/ie/ScriptDebugger.cpp
+END
+NetBeansExtension.vcxproj.filters
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svn/main/!svn/ver/5222/DECAF/plugins/browserstub/extension/ie/NetBeansExtension.vcxproj.filters
+END
+NetBeansExtension.vcproj
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/main/!svn/ver/5092/DECAF/plugins/browserstub/extension/ie/NetBeansExtension.vcproj
+END
+ScriptDebugger.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/main/!svn/ver/5758/DECAF/plugins/browserstub/extension/ie/ScriptDebugger.h
+END
+NetBeansExtension.rc
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/main/!svn/ver/5092/DECAF/plugins/browserstub/extension/ie/NetBeansExtension.rc
+END
+NetBeansExtension.suo
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/main/!svn/ver/6459/DECAF/plugins/browserstub/extension/ie/NetBeansExtension.suo
+END
+NetBeansExtension.vcxproj.user
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/main/!svn/ver/5284/DECAF/plugins/browserstub/extension/ie/NetBeansExtension.vcxproj.user
+END
+NetBeansExtension.idl
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/main/!svn/ver/5092/DECAF/plugins/browserstub/extension/ie/NetBeansExtension.idl
+END
+NetBeansBHO.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/main/!svn/ver/5555/DECAF/plugins/browserstub/extension/ie/NetBeansBHO.cpp
+END

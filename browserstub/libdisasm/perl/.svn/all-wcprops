@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/main/!svn/ver/6763/DECAF/plugins/browserstub/libdisasm/perl
+END
+x86disasm.pl
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/main/!svn/ver/6762/DECAF/plugins/browserstub/libdisasm/perl/x86disasm.pl
+END
+Makefile.in
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/main/!svn/ver/6762/DECAF/plugins/browserstub/libdisasm/perl/Makefile.in
+END
+modify_opcode_map.pl
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/main/!svn/ver/6762/DECAF/plugins/browserstub/libdisasm/perl/modify_opcode_map.pl
+END
+Makefile.am
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/main/!svn/ver/6762/DECAF/plugins/browserstub/libdisasm/perl/Makefile.am
+END
+bin_from_dump.pl
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/main/!svn/ver/6762/DECAF/plugins/browserstub/libdisasm/perl/bin_from_dump.pl
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/main/!svn/ver/6763/DECAF/plugins/browserstub/libdisasm/perl/Makefile
+END
+build_opcode_map.pl
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/main/!svn/ver/6762/DECAF/plugins/browserstub/libdisasm/perl/build_opcode_map.pl
+END

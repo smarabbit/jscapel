@@ -1,0 +1,89 @@
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/main/!svn/ver/6762/DECAF/plugins/browserstub/libdisasm/libdisasm/.deps
+END
+ia32_insn.Plo
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/main/!svn/ver/6762/DECAF/plugins/browserstub/libdisasm/libdisasm/.deps/ia32_insn.Plo
+END
+x86_disasm.Plo
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/main/!svn/ver/6762/DECAF/plugins/browserstub/libdisasm/libdisasm/.deps/x86_disasm.Plo
+END
+ia32_operand.Plo
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/main/!svn/ver/6762/DECAF/plugins/browserstub/libdisasm/libdisasm/.deps/ia32_operand.Plo
+END
+x86_imm.Plo
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/main/!svn/ver/6762/DECAF/plugins/browserstub/libdisasm/libdisasm/.deps/x86_imm.Plo
+END
+ia32_implicit.Plo
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/main/!svn/ver/6762/DECAF/plugins/browserstub/libdisasm/libdisasm/.deps/ia32_implicit.Plo
+END
+x86_operand_list.Plo
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svn/main/!svn/ver/6762/DECAF/plugins/browserstub/libdisasm/libdisasm/.deps/x86_operand_list.Plo
+END
+ia32_invariant.Plo
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svn/main/!svn/ver/6762/DECAF/plugins/browserstub/libdisasm/libdisasm/.deps/ia32_invariant.Plo
+END
+ia32_reg.Plo
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/main/!svn/ver/6762/DECAF/plugins/browserstub/libdisasm/libdisasm/.deps/ia32_reg.Plo
+END
+ia32_modrm.Plo
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/main/!svn/ver/6762/DECAF/plugins/browserstub/libdisasm/libdisasm/.deps/ia32_modrm.Plo
+END
+x86_insn.Plo
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/main/!svn/ver/6762/DECAF/plugins/browserstub/libdisasm/libdisasm/.deps/x86_insn.Plo
+END
+x86_format.Plo
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/main/!svn/ver/6762/DECAF/plugins/browserstub/libdisasm/libdisasm/.deps/x86_format.Plo
+END
+ia32_settings.Plo
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/main/!svn/ver/6762/DECAF/plugins/browserstub/libdisasm/libdisasm/.deps/ia32_settings.Plo
+END
+x86_misc.Plo
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/main/!svn/ver/6762/DECAF/plugins/browserstub/libdisasm/libdisasm/.deps/x86_misc.Plo
+END
+ia32_opcode_tables.Plo
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svn/main/!svn/ver/6762/DECAF/plugins/browserstub/libdisasm/libdisasm/.deps/ia32_opcode_tables.Plo
+END

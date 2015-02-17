@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/main/!svn/ver/4718/DECAF/plugins/browserstub/extension/firefox
+END
+install.rdf
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/main/!svn/ver/4706/DECAF/plugins/browserstub/extension/firefox/install.rdf
+END
+chrome.manifest
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/main/!svn/ver/4706/DECAF/plugins/browserstub/extension/firefox/chrome.manifest
+END
+helloworld@mozilla.doslash.org
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svn/main/!svn/ver/4707/DECAF/plugins/browserstub/extension/firefox/helloworld@mozilla.doslash.org
+END
+build.sh
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/main/!svn/ver/4706/DECAF/plugins/browserstub/extension/firefox/build.sh
+END
+build_mac.sh
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/main/!svn/ver/4706/DECAF/plugins/browserstub/extension/firefox/build_mac.sh
+END
+readme.txt
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/main/!svn/ver/4706/DECAF/plugins/browserstub/extension/firefox/readme.txt
+END
+config_build.sh
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/main/!svn/ver/4706/DECAF/plugins/browserstub/extension/firefox/config_build.sh
+END

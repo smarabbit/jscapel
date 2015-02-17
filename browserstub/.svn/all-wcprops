@@ -1,0 +1,173 @@
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/main/!svn/ver/7162/DECAF/plugins/browserstub
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/main/!svn/ver/6795/DECAF/plugins/browserstub/Makefile
+END
+win_constants.h
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/main/!svn/ver/4628/DECAF/plugins/browserstub/win_constants.h
+END
+trace.c
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/main/!svn/ver/7024/DECAF/plugins/browserstub/trace.c
+END
+configure
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/main/!svn/ver/6633/DECAF/plugins/browserstub/configure
+END
+utils.c
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/main/!svn/ver/5560/DECAF/plugins/browserstub/utils.c
+END
+handlers.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/main/!svn/ver/7067/DECAF/plugins/browserstub/handlers.cpp
+END
+cfi.c
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/main/!svn/ver/7067/DECAF/plugins/browserstub/cfi.c
+END
+extract_from_binary.c
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/main/!svn/ver/7017/DECAF/plugins/browserstub/extract_from_binary.c
+END
+trace.h
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/main/!svn/ver/7022/DECAF/plugins/browserstub/trace.h
+END
+operandinfo.c
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/main/!svn/ver/7024/DECAF/plugins/browserstub/operandinfo.c
+END
+utils.h
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/main/!svn/ver/5544/DECAF/plugins/browserstub/utils.h
+END
+peheaders.h
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/main/!svn/ver/6762/DECAF/plugins/browserstub/peheaders.h
+END
+handlers.h
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/main/!svn/ver/7067/DECAF/plugins/browserstub/handlers.h
+END
+config-plugin.h
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/main/!svn/ver/6795/DECAF/plugins/browserstub/config-plugin.h
+END
+cfi.h
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/main/!svn/ver/6916/DECAF/plugins/browserstub/cfi.h
+END
+plugin_cmds.h
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/main/!svn/ver/6763/DECAF/plugins/browserstub/plugin_cmds.h
+END
+conditions.c
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/main/!svn/ver/7024/DECAF/plugins/browserstub/conditions.c
+END
+operandinfo.h
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/main/!svn/ver/7023/DECAF/plugins/browserstub/operandinfo.h
+END
+conditions.h
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/main/!svn/ver/7023/DECAF/plugins/browserstub/conditions.h
+END
+browserstub.c
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/main/!svn/ver/7066/DECAF/plugins/browserstub/browserstub.c
+END
+tracecap.c
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/main/!svn/ver/7024/DECAF/plugins/browserstub/tracecap.c
+END
+disasm.h
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/main/!svn/ver/7023/DECAF/plugins/browserstub/disasm.h
+END
+conf.c
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/main/!svn/ver/7024/DECAF/plugins/browserstub/conf.c
+END
+browserstub.h
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/main/!svn/ver/7021/DECAF/plugins/browserstub/browserstub.h
+END
+config-plugin.mak
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/main/!svn/ver/6795/DECAF/plugins/browserstub/config-plugin.mak
+END
+tracecap.h
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/main/!svn/ver/7020/DECAF/plugins/browserstub/tracecap.h
+END
+COPYING
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/main/!svn/ver/4628/DECAF/plugins/browserstub/COPYING
+END
+conf.h
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/main/!svn/ver/7023/DECAF/plugins/browserstub/conf.h
+END
